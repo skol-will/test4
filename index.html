@@ -1,400 +1,468 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IFL Playoff Predictor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans&display=swap" rel="stylesheet">
-  <style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>International Football League Playoff Predictor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans&display=swap');
+  body {
+    font-family: 'Noto Sans', sans-serif;
+    background: #0e1111;
+    color: white;
+    margin: 0 auto;
+    max-width: 900px;
+    padding: 1rem 1rem 3rem;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+  }
+  header img {
+    width: 48px;
+    height: 48px;
+  }
+  header h1 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2.5rem;
+    margin: 0;
+  }
+  h2 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.8rem;
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  h3 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.2rem;
+    margin: 1rem 0 0.4rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  h3 img {
+    width: 30px;
+    height: 30px;
+  }
+  p.body-text {
+    font-size: 0.95rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #ccc;
+  }
+
+  /* Stage 1 Team Grid */
+  .team-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+  }
+  .team-card {
+    position: relative;
+    width: 140px;
+    height: 40px;
+    background-color: #1a1a1a;
+    border-radius: 6px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+  .team-card img {
+    width: 140px;
+    height: 40px;
+    object-fit: cover;
+    vertical-align: middle;
+  }
+  .team-card .label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 140px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 4px #000, 0 0 6px #000;
+    pointer-events: none;
+    user-select: none;
+    font-size: 0.9rem;
+  }
+  .team-card:hover:not(.disabled):not(.selected) {
+    background-color: #292929;
+    transform: scale(1.05);
+  }
+  .team-card.selected {
+    outline: 3px solid #00bfff;
+    background-color: #004466;
+  }
+  .team-card.disabled {
+    filter: grayscale(90%) brightness(0.5);
+    cursor: not-allowed;
+  }
+
+  /* Buttons */
+  button {
+    margin: 2rem auto 0 auto;
+    display: block;
+    padding: 0.8rem 1.8rem;
+    font-size: 1.1rem;
+    border-radius: 6px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:disabled {
+    background-color: #444;
+    cursor: not-allowed;
+  }
+  button:hover:not(:disabled) {
+    background-color: #005bb5;
+  }
+
+  /* Stage 2 Bracket Styles */
+  #stage2 {
+    display: none;
+    margin-top: 2rem;
+  }
+  .bracket {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+  .round {
+    background: #1a1a1a;
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .round h2 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .matchup {
+    border: 2px solid #444;
+    border-radius: 8px;
+    padding: 0.8rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    background: #222;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .matchup .team-option {
+    background-color: #333;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    color: white;
+    user-select: none;
+    transition: background-color 0.2s ease;
+  }
+  .matchup .team-option:hover:not(.disabled):not(.selected) {
+    background-color: #005580;
+  }
+  .team-option.selected {
+    background-color: #007bff;
+    cursor: default;
+  }
+  .team-option.disabled {
+    background-color: #555;
+    cursor: not-allowed;
+    color: #bbb;
+  }
+
+  #worldbowl-container {
+    grid-column: 4 / 5;
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+  #worldbowl-logo {
+    width: 80px;
+    height: 80px;
+  }
+
+  #champion {
+    background-color: #004466;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.3rem;
+    color: #00bfff;
+    min-height: 70px;
+  }
+
+  @media (max-width: 600px) {
     body {
-      font-family: 'Noto Sans', sans-serif;
-      background-color: #0e1111;
-      color: white;
-      margin: 0;
+      max-width: 100%;
       padding: 1rem;
     }
-
-    h1, h2, h3 {
-      font-family: 'Bebas Neue', cursive;
-      text-align: center;
-      margin: 0.5rem 0;
-    }
-
-    .ifl-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-    }
-
-    .ifl-header img {
-      width: 50px;
-      height: 50px;
-    }
-
-    .section {
-      margin-bottom: 2rem;
-    }
-
-    .division-section {
-      margin-bottom: 1.5rem;
-    }
-
-    .division-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .division-header img {
+    .team-card {
+      width: 100px;
       height: 30px;
     }
-
-    .team-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      justify-content: center;
-    }
-
-    .team-card {
-      width: 140px;
-      height: 40px;
-      background-color: #1a1a1a;
-      border-radius: 6px;
-      position: relative;
-      cursor: pointer;
-      overflow: hidden;
-      border: 2px solid transparent;
-    }
-
-    .team-card img {
-      width: 140px;
-      height: 40px;
-      object-fit: cover;
-    }
-
+    .team-card img,
     .team-card .label {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      color: white;
-      text-shadow: 0 0 4px #000, 0 0 6px #000;
-      z-index: 1;
+      width: 100px;
+      height: 30px;
+      font-size: 0.75rem;
     }
-
-    .team-card.selected {
-      border-color: #00bfff;
-    }
-
-    .team-card.greyed {
-      opacity: 0.3;
-      pointer-events: none;
-    }
-
-    button {
-      margin: 2rem auto;
-      display: block;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      border: none;
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-
     .bracket {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-around;
-      flex-wrap: wrap;
-      margin-top: 2rem;
+      grid-template-columns: 1fr;
+      gap: 2rem;
     }
-
     .round {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      width: 100%;
+      align-items: stretch;
     }
-
-    .matchup {
-      border: 2px solid #444;
-      border-radius: 8px;
-      margin: 1rem;
-      padding: 0.5rem;
-      width: 140px;
-    }
-
-    .matchup .team {
-      padding: 0.5rem;
-      text-align: center;
-      cursor: pointer;
-      font-weight: bold;
-      border-radius: 4px;
-      margin: 0.25rem 0;
-    }
-
-    .team.selected {
-      background-color: #00bfff;
-      color: white;
-    }
-
-    .team.disabled {
-      opacity: 0.3;
-      pointer-events: none;
-    }
-
-    .logo-centered {
-      text-align: center;
-      margin: 1rem 0;
-    }
-
-    .logo-centered img {
-      width: 120px;
-    }
-
-    .champion-display {
-      font-size: 1.2rem;
+    #worldbowl-container {
+      grid-column: auto;
+      justify-content: center;
       margin-top: 1rem;
-      text-align: center;
-      font-weight: bold;
     }
-  </style>
+  }
+</style>
 </head>
 <body>
 
-  <div class="ifl-header">
-    <img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/ifl-logo_q9fmai.png" alt="IFL Logo">
-    <h1>International Football League Playoff Predictor</h1>
-  </div>
+<header>
+  <img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/ifl-logo_q9fmai.png" alt="IFL Logo" />
+  <h1>International Football League Playoff Predictor</h1>
+</header>
 
-  <div class="section" id="stage1">
-    <h2>Division Winners</h2>
-    <p style="text-align:center;">Select 1 division winner from each division</p>
+<section id="stage1">
+  <h2>Division Winners</h2>
+  <p class="body-text">Select 1 division winner from each division</p>
 
-    <div class="division-section" data-division="World East">
-      <div class="division-header">
-        <img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-east_dzwpw9.png" />
-        <h3>World East</h3>
+  <section class="division-section">
+    <h3><img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-east_dzwpw9.png" alt="World East" /> World East</h3>
+    <div class="team-grid" id="div-world-east"></div>
+  </section>
+
+  <section class="division-section">
+    <h3><img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-central_okus8o.png" alt="World Central" /> World Central</h3>
+    <div class="team-grid" id="div-world-central"></div>
+  </section>
+
+  <section class="division-section">
+    <h3><img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-west_ie8gga.png" alt="World West" /> World West</h3>
+    <div class="team-grid" id="div-world-west"></div>
+  </section>
+
+  <h2 style="margin-top: 3rem;">Wildcards</h2>
+  <p class="body-text">Select 5 wildcard teams</p>
+  <div class="team-grid" id="wildcards"></div>
+
+  <button id="toStage2" disabled>Continue to Matchups</button>
+</section>
+
+<section id="stage2" style="display:none;">
+  <h2>Bracket Builder</h2>
+  <div class="bracket">
+    <div class="round" id="quarterfinals">
+      <h2>Quarter Finals</h2>
+      <!-- Matchups go here -->
+    </div>
+    <div class="round" id="semifinals">
+      <h2>Semi Finals</h2>
+      <!-- Matchups go here -->
+    </div>
+    <div class="round" id="finals">
+      <h2>Final</h2>
+      <div class="matchup" id="final-matchup"></div>
+      <div id="worldbowl-container">
+        <img id="worldbowl-logo" src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752185315/WBIII_id02n2.png" alt="World Bowl Logo" />
       </div>
-      <div class="team-grid" id="div-East"></div>
     </div>
-
-    <div class="division-section" data-division="World Central">
-      <div class="division-header">
-        <img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-central_okus8o.png" />
-        <h3>World Central</h3>
-      </div>
-      <div class="team-grid" id="div-Central"></div>
+    <div class="round" id="champion">
+      <h2>Champion</h2>
+      <div id="champion-name">No champion selected</div>
     </div>
-
-    <div class="division-section" data-division="World West">
-      <div class="division-header">
-        <img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-west_ie8gga.png" />
-        <h3>World West</h3>
-      </div>
-      <div class="team-grid" id="div-West"></div>
-    </div>
-
-    <h2>Wildcards</h2>
-    <p style="text-align:center;">Select 5 wildcard teams</p>
-    <div class="team-grid" id="wildcards"></div>
-
-    <button onclick="goToBracket()">Continue to Bracket</button>
   </div>
-
-  <div class="section" id="stage2" style="display:none;">
-    <h2>Bracket</h2>
-    <div class="bracket">
-      <div class="round" id="quarterfinals"><h3>Quarter Finals</h3></div>
-      <div class="round" id="semifinals"><h3>Semi Finals</h3></div>
-      <div class="round" id="final"><h3>Final</h3></div>
-    </div>
-    <div class="logo-centered">
-      <img src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752185315/WBIII_id02n2.png" alt="World Bowl">
-    </div>
-    <div class="champion-display" id="championDisplay"></div>
-  </div>
+</section>
 
 <script>
-const divisions = {
-  "World East": ["Australia Whites", "Italia Bulls", "Belarus Barbarians", "Singapore Smelters", "South Korea Deers", "Poland Panthers"],
-  "World Central": ["Germany Cavaliers", "UK 3 Lions", "Finland Frigates", "Belgium Bulldogs", "Holland Hornets", "South Africa Silverbacks"],
-  "World West": ["USA Drones", "Jamaica Thunder", "Rwanda Raiders", "Egypt Pharaohs", "Peru Piranhas", "Brazil Hummingbirds"]
-};
-
-const logos = {
-  "Australia Whites": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182184/australia-whites_h9o2vz.png",
-  "Italia Bulls": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/italia-bulls_aocvis.png",
-  "Belarus Barbarians": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/belarus-barbarians_ydx3kz.png",
-  "Singapore Smelters": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/singapore-smelters_qn3ges.png",
-  "South Korea Deers": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/southkorea-deers_jbt02f.png",
-  "Poland Panthers": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/poland-panthers_ppg3zr.png",
-  "Germany Cavaliers": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/germany-cavaliers_qrcojc.png",
-  "UK 3 Lions": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/uk-tri-lions_kyixfr.png",
-  "Finland Frigates": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/finland-frigate_u7rjbj.png",
-  "Belgium Bulldogs": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/belgium-bulldogs_hrx8td.png",
-  "Holland Hornets": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/holland-hornets_ilzroo.png",
-  "South Africa Silverbacks": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/southafrica-silverbaks_x6but2.png",
-  "USA Drones": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182187/usa-drones_doeba8.png",
-  "Jamaica Thunder": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/jamaica-thunder_ogo7aj.png",
-  "Rwanda Raiders": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/rwanda-raiders_aqtgu7.png",
-  "Egypt Pharaohs": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/egypt-pharaohs_ycglpl.png",
-  "Peru Piranhas": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/peru-piranhas_yueas6.png",
-  "Brazil Hummingbirds": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/brazil-hummingbirds_dras9r.png"
-};
-
-const selected = {
-  divisions: {},
-  wildcards: []
-};
-
-function renderStage1() {
-  for (const [div, teams] of Object.entries(divisions)) {
-    const divKey = div.split(" ")[1];
-    const container = document.getElementById(`div-${divKey}`);
-    teams.forEach(team => {
-      const card = document.createElement('div');
-      card.className = 'team-card';
-      card.innerHTML = `
-        <div class="label">${team}</div>
-        <img src="${logos[team]}" alt="${team}">
-      `;
-      card.onclick = () => {
-        // Division selection logic
-        if (selected.divisions[div] === team) {
-          delete selected.divisions[div];
-        } else {
-          selected.divisions[div] = team;
-        }
-        renderStage1();
-      };
-      if (selected.divisions[div]) {
-        if (selected.divisions[div] === team) card.classList.add('selected');
-        else card.classList.add('greyed');
-      }
-      container.appendChild(card);
-    });
-  }
-
-  // Wildcards
-  const wildcardContainer = document.getElementById('wildcards');
-  wildcardContainer.innerHTML = '';
-  const picked = Object.values(selected.divisions);
-  const all = Object.values(divisions).flat().filter(t => !picked.includes(t));
-  all.forEach(team => {
-    const card = document.createElement('div');
-    card.className = 'team-card';
-    card.innerHTML = `
-      <div class="label">${team}</div>
-      <img src="${logos[team]}" alt="${team}">
-    `;
-    card.onclick = () => {
-      if (selected.wildcards.includes(team)) {
-        selected.wildcards = selected.wildcards.filter(t => t !== team);
-      } else if (selected.wildcards.length < 5) {
-        selected.wildcards.push(team);
-      }
-      renderStage1();
-    };
-    if (selected.wildcards.includes(team)) card.classList.add('selected');
-    wildcardContainer.appendChild(card);
-  });
-}
-
-function goToBracket() {
-  const all = Object.values(selected.divisions).concat(selected.wildcards);
-  if (all.length !== 8) {
-    alert("Select 3 division winners and 5 wildcard teams.");
-    return;
-  }
-  document.getElementById("stage1").style.display = "none";
-  document.getElementById("stage2").style.display = "block";
-
-  buildBracket(all);
-}
-
-function buildBracket(teams) {
-  const q = document.getElementById("quarterfinals");
-  const s = document.getElementById("semifinals");
-  const f = document.getElementById("final");
-  const champ = document.getElementById("championDisplay");
-  q.innerHTML = "<h3>Quarter Finals</h3>";
-  s.innerHTML = "<h3>Semi Finals</h3>";
-  f.innerHTML = "<h3>Final</h3>";
-  champ.textContent = "";
-
-  const semiWinners = [];
-  const finalWinners = [];
-
-  for (let i = 0; i < 4; i++) {
-    const m = document.createElement("div");
-    m.className = "matchup";
-    const teamA = createTeamBox(teams[i*2], () => {
-      addToRound(semiWinners, teams[i*2], i, s, "Semi Finals", 2, finalWinners, f, champ);
-    });
-    const teamB = createTeamBox(teams[i*2+1], () => {
-      addToRound(semiWinners, teams[i*2+1], i, s, "Semi Finals", 2, finalWinners, f, champ);
-    });
-    m.appendChild(teamA);
-    m.appendChild(teamB);
-    q.appendChild(m);
-  }
-}
-
-function createTeamBox(name, onClick) {
-  const div = document.createElement("div");
-  div.className = "team";
-  div.textContent = name;
-  div.onclick = () => {
-    const siblings = div.parentElement.querySelectorAll('.team');
-    siblings.forEach(sib => {
-      sib.classList.remove("selected", "disabled");
-      if (sib !== div) sib.classList.add("disabled");
-    });
-    div.classList.add("selected");
-    onClick();
+  // Data Setup
+  const divisions = {
+    "World East": [
+      "Australia Whites",
+      "Italia Bulls",
+      "Belarus Barbarians",
+      "Singapore Smelters",
+      "South Korea Deers",
+      "Poland Panthers",
+    ],
+    "World Central": [
+      "Germany Cavaliers",
+      "UK 3 Lions",
+      "Finland Frigate",
+      "Belgium Bulldogs",
+      "Holland Hornets",
+      "South Africa Silverbacks",
+    ],
+    "World West": [
+      "USA Drones",
+      "Jamaica Thunder",
+      "Rwanda Raiders",
+      "Egypt Pharaohs",
+      "Peru Piranhas",
+      "Brazil Hummingbirds",
+    ],
   };
-  return div;
-}
 
-function addToRound(storage, team, index, container, title, max, nextStorage, nextContainer, champDisplay) {
-  storage[index] = team;
-  renderRound(storage, container, title);
-  if (storage.filter(Boolean).length === max) {
-    renderFinal(nextStorage, nextContainer, champDisplay);
+  // Track selections
+  const divisionWinners = {
+    "World East": null,
+    "World Central": null,
+    "World West": null,
+  };
+  const wildcardSelected = new Set();
+
+  // Buttons
+  const toStage2Btn = document.getElementById("toStage2");
+
+  // Helper to create a team card with image and label
+  function createTeamCard(teamName) {
+    const card = document.createElement("div");
+    card.classList.add("team-card");
+    const img = document.createElement("img");
+    // Use the cloudinary URLs
+    const logos = {
+      "Australia Whites": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182184/australia-whites_h9o2vz.png",
+      "Italia Bulls": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/italia-bulls_aocvis.png",
+      "Belarus Barbarians": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/belarus-barbarians_ydx3kz.png",
+      "Singapore Smelters": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/singapore-smelters_qn3ges.png",
+      "South Korea Deers": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/southkorea-deers_jbt02f.png",
+      "Poland Panthers": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/poland-panthers_ppg3zr.png",
+      "Germany Cavaliers": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/germany-cavaliers_qrcojc.png",
+      "UK 3 Lions": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/uk-tri-lions_kyixfr.png",
+      "Finland Frigate": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/finland-frigate_u7rjbj.png",
+      "Belgium Bulldogs": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/belgium-bulldogs_hrx8td.png",
+      "Holland Hornets": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/holland-hornets_ilzroo.png",
+      "South Africa Silverbacks": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/southafrica-silverbaks_x6but2.png",
+      "USA Drones": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182187/usa-drones_doeba8.png",
+      "Jamaica Thunder": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/jamaica-thunder_ogo7aj.png",
+      "Rwanda Raiders": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182186/rwanda-raiders_aqtgu7.png",
+      "Egypt Pharaohs": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/egypt-pharaohs_ycglpl.png",
+      "Peru Piranhas": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/peru-piranhas_yueas6.png",
+      "Brazil Hummingbirds": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752182185/brazil-hummingbirds_dras9r.png",
+    };
+    img.src = logos[teamName] || "";
+    img.alt = teamName;
+    card.appendChild(img);
+    const label = document.createElement("div");
+    label.classList.add("label");
+    label.textContent = teamName;
+    card.appendChild(label);
+    return card;
   }
-}
 
-function renderRound(storage, container, title) {
-  container.innerHTML = `<h3>${title}</h3>`;
-  for (let i = 0; i < storage.length; i += 2) {
-    const m = document.createElement("div");
-    m.className = "matchup";
-    if (storage[i]) m.appendChild(createTeamBox(storage[i], () => addToChampion(storage[i])));
-    if (storage[i+1]) m.appendChild(createTeamBox(storage[i+1], () => addToChampion(storage[i+1])));
-    container.appendChild(m);
+  // Render Division Winners Team Grids
+  function renderDivisionWinners() {
+    // Clear containers
+    Object.entries(divisions).forEach(([divName, teams]) => {
+      const container = document.getElementById("div-" + divName.toLowerCase().replace(" ", "-"));
+      container.innerHTML = "";
+      teams.forEach((team) => {
+        const card = createTeamCard(team);
+        // Disable if selected as winner in another division or selected here already
+        if (
+          Object.values(divisionWinners).includes(team) &&
+          divisionWinners[divName] !== team
+        ) {
+          card.classList.add("disabled");
+        }
+        // If selected, mark as selected
+        if (divisionWinners[divName] === team) {
+          card.classList.add("selected");
+        }
+        card.addEventListener("click", () => {
+          if (divisionWinners[divName] === team) {
+            divisionWinners[divName] = null;
+          } else {
+            divisionWinners[divName] = team;
+            // Remove wildcard if selected here
+            if (wildcardSelected.has(team)) {
+              wildcardSelected.delete(team);
+            }
+          }
+          renderDivisionWinners();
+          renderWildcards();
+          updateContinueButton();
+        });
+        container.appendChild(card);
+      });
+    });
   }
-}
 
-function renderFinal(storage, container, champDisplay) {
-  renderRound(storage, container, "Final");
-  champDisplay.textContent = "";
-}
+  // Render Wildcards
+  function renderWildcards() {
+    const wcContainer = document.getElementById("wildcards");
+    wcContainer.innerHTML = "";
+    // Eligible wildcard teams = all teams excluding division winners selected
+    let allTeams = [];
+    Object.values(divisions).forEach((arr) => (allTeams = allTeams.concat(arr)));
+    const divisionWinnerTeams = Object.values(divisionWinners).filter(Boolean);
+    const eligibleWildcards = allTeams.filter((team) => !divisionWinnerTeams.includes(team));
 
-function addToChampion(winner) {
-  document.getElementById("championDisplay").textContent = `Champion: ${winner}`;
-}
+    eligibleWildcards.forEach((team) => {
+      const card = createTeamCard(team);
+      if (wildcardSelected.has(team)) {
+        card.classList.add("selected");
+      }
+      card.addEventListener("click", () => {
+        if (wildcardSelected.has(team)) {
+          wildcardSelected.delete(team);
+        } else if (wildcardSelected.size < 5) {
+          wildcardSelected.add(team);
+        }
+        renderWildcards();
+        updateContinueButton();
+      });
+      wcContainer.appendChild(card);
+    });
+  }
 
-renderStage1();
-</script>
-</body>
-</html>
+  // Enable continue button if conditions met
+  function updateContinueButton() {
+    const winnersSelected = Object.values(divisionWinners).filter(Boolean).length === 3;
+    const wildcardsSelected = wildcardSelected.size === 5;
+    toStage2Btn.disabled = !(winnersSelected && wildcardsSelected);
+  }
+
+  // STAGE 2 Variables
+  const stage2 = document.getElementById("stage2");
+  const stage1 = document.getElementById("stage1");
+  const quarterfinals = document.getElementById("quarterfinals");
+  const semifinals = document.getElementById("semifinals");
+  const finals = document.getElementById("finals");
+  const championSection = document.getElementById("champion-name");
+
+  // Hold selections for brackets
+  let quarterWinners = new Array(8).fill(null);
+  let semiWinners = new Array(4).fill(null);
+  let finalWinner = null;
+
+  // On Continue button click: Build quarterfinals bracket
+  toStage2Btn.addEventListener("click", () => {
+    stage1.style.display = "none";
+    stage2.style.display = "block";
+    buildQuarterfinals();
+  });
+
+  // Build Quarterfinals: 8 teams = 3 division winners + 5 wildcards
+  function buildQuarter
