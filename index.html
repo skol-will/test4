@@ -112,6 +112,7 @@
   .team-card.selected {
     
     background-color: #004466;
+    border: 3px solid #00bfff
   }
   .team-card.disabled {
     opacity: 0.35;
@@ -357,48 +358,42 @@
 
     // Render Stage 1 Divisions
     function renderDivisionWinners() {
-      divisionWinnersContainer.innerHTML = "";
-      for (const [divName, teams] of Object.entries(divisions)) {
-        const divSection = document.createElement("div");
-        divSection.className = "division-section";
+  divisionWinnersContainer.innerHTML = "";
+  for (const [divName, teams] of Object.entries(divisions)) {
+    const divSection = document.createElement("div");
+    divSection.className = "division-section";
 
-        // Title with division logo
-        const h3 = document.createElement("h3");
-        h3.innerHTML = `
-          <img class="div-logo" src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/${divName.toLowerCase().replace(/ /g,'-')}_dzwpw9.png" alt="${divName}" />
-          ${divName}
-        `;
-        divSection.appendChild(h3);
+    // Title with division logo - dynamic URL based on division name
+    const h3 = document.createElement("h3");
+    h3.innerHTML = `
+      <img class="div-logo" src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/${divName.toLowerCase().replace(/ /g,'-')}_dzwpw9.png" alt="${divName}" />
+      ${divName}
+    `;
+    divSection.appendChild(h3);
 
-        // Team grid
-        const grid = document.createElement("div");
-        grid.className = "team-grid";
+    // ... rest of the code for team grid
+    const grid = document.createElement("div");
+    grid.className = "team-grid";
 
-        teams.forEach(team => {
-          // disabled if team is wildcard selected OR already chosen as division winner (except current)
-          const disabled = (selectedWildcards.has(team)) || 
-            (selectedDivisionWinners[divName] && selectedDivisionWinners[divName] !== team);
+    teams.forEach(team => {
+      const disabled = (selectedWildcards.has(team)) || 
+        (selectedDivisionWinners[divName] && selectedDivisionWinners[divName] !== team);
+      const card = createTeamCard(team, new Set([team]), () => {
+        if(selectedDivisionWinners[divName] === team) {
+          delete selectedDivisionWinners[divName];
+        } else {
+          selectedDivisionWinners[divName] = team;
+          selectedWildcards.delete(team);
+        }
+        updateUIStage1();
+      }, disabled);
+      grid.appendChild(card);
+    });
 
-          const selected = selectedDivisionWinners[divName] === team;
-          const card = createTeamCard(team, new Set([team]), () => {
-            // Replace winner for division
-            if(selectedDivisionWinners[divName] === team) {
-              delete selectedDivisionWinners[divName];
-            } else {
-              selectedDivisionWinners[divName] = team;
-              // Remove from wildcards if present
-              selectedWildcards.delete(team);
-            }
-            updateUIStage1();
-          }, disabled);
-          grid.appendChild(card);
-        });
-
-        divSection.appendChild(grid);
-        divisionWinnersContainer.appendChild(divSection);
-      }
-    }
-
+    divSection.appendChild(grid);
+    divisionWinnersContainer.appendChild(divSection);
+  }
+}
     // Render Stage 1 Wildcards
     function renderWildcards() {
       wildcardsContainer.innerHTML = "";
