@@ -356,22 +356,28 @@
       return card;
     }
 
-    // Render Stage 1 Divisions
-    function renderDivisionWinners() {
+    // Fixed division logos URLs
+const divisionLogos = {
+  "World East": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-east_dzwpw9.png",
+  "World Central": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-central_okus8o.png",
+  "World West": "https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/world-west_ie8gga.png"
+};
+
+function renderDivisionWinners() {
   divisionWinnersContainer.innerHTML = "";
   for (const [divName, teams] of Object.entries(divisions)) {
     const divSection = document.createElement("div");
     divSection.className = "division-section";
 
-    // Title with division logo - dynamic URL based on division name
+    // Title with fixed division logo URL
     const h3 = document.createElement("h3");
     h3.innerHTML = `
-      <img class="div-logo" src="https://res.cloudinary.com/de4q4iitx/image/upload/v1752231585/${divName.toLowerCase().replace(/ /g,'-')}_dzwpw9.png" alt="${divName}" />
+      <img class="div-logo" src="${divisionLogos[divName]}" alt="${divName}" />
       ${divName}
     `;
     divSection.appendChild(h3);
 
-    // ... rest of the code for team grid
+    // Team grid
     const grid = document.createElement("div");
     grid.className = "team-grid";
 
